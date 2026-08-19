@@ -1,6 +1,6 @@
 const { pool } = require("../db.js");
-const { chunkText } = require("./chunking");
-const { embedTexts } = require("./embeddings");
+const { chunkText } = require("./chunking.js");
+const { embedTexts } = require("./embeddings.js");
 
 /**
  * Takes a raw document (title + text), chunks it, embeds every chunk,

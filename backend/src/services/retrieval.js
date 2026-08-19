@@ -7,7 +7,15 @@ const { pool } = require("../db");
  */
 async function findSimilarChunks(queryEmbedding, k = 5) {
   const vectorLiteral = `[${queryEmbedding.join(",")}]`;
-
+ // TEMP DEBUG: does a parameterized query with NO vector at all still find the row?
+  const testResult = await pool.query(
+    `SELECT chunks.id, chunks.content, documents.title AS document_title
+     FROM chunks
+     JOIN documents ON documents.id = chunks.document_id
+     LIMIT $1`,
+    [k]
+  );
+  console.log("Plain parameterized JOIN (no vector):", testResult.rows.length);
   const { rows } = await pool.query(
     `SELECT
        chunks.id,
@@ -21,6 +29,8 @@ async function findSimilarChunks(queryEmbedding, k = 5) {
      LIMIT $2`,
     [vectorLiteral, k]
   );
+
+    console.log("Retrieval returned rows:", rows.length, "for k =", k);
 
   return rows;
 }
