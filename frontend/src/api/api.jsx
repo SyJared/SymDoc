@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3001";
+const BASE_URL = "http://localhost:5000";
 
 export async function uploadDocument(title, text) {
   const res = await fetch(`${BASE_URL}/api/documents`, {
