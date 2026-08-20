@@ -1,10 +1,19 @@
-import { useState } from "react";
-import { askQuestion } from "../api/api";
+import { useEffect, useState } from "react";
+import { askQuestion, listDocuments } from "../api/api";
 
-export default function QueryChat() {
+export default function QueryChat({ refreshTrigger }) {
   const [question, setQuestion] = useState("");
+  const [documents, setDocuments] = useState([]);
+  const [selectedDocId, setSelectedDocId] = useState(""); // "" means "all documents"
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState("idle"); // idle | loading | error
+
+  // Keep the dropdown in sync with whatever's actually been uploaded
+  useEffect(() => {
+    listDocuments()
+      .then(setDocuments)
+      .catch((err) => console.error(err));
+  }, [refreshTrigger]);
 
   async function handleAsk(e) {
     e.preventDefault();
@@ -12,7 +21,9 @@ export default function QueryChat() {
 
     setStatus("loading");
     try {
-      const response = await askQuestion(question);
+      // "" (All documents) becomes null -- backend treats null as "search everything"
+      const documentId = selectedDocId ? Number(selectedDocId) : null;
+      const response = await askQuestion(question, documentId);
       setResult(response);
       setStatus("idle");
     } catch (err) {
@@ -24,9 +35,21 @@ export default function QueryChat() {
   return (
     <div className="query-chat">
       <form onSubmit={handleAsk}>
+        <select
+          value={selectedDocId}
+          onChange={(e) => setSelectedDocId(e.target.value)}
+        >
+          <option value="">All documents</option>
+          {documents.map((doc) => (
+            <option key={doc.id} value={doc.id}>
+              {doc.title}
+            </option>
+          ))}
+        </select>
+
         <input
           type="text"
-          placeholder="Ask a question about your documents..."
+          placeholder="Ask a question..."
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />

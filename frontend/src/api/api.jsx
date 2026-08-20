@@ -16,11 +16,11 @@ export async function listDocuments() {
   return res.json();
 }
 
-export async function askQuestion(question) {
+export async function askQuestion(question, documentId = null) {
   const res = await fetch(`${BASE_URL}/api/query`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, documentId }),
   });
   if (!res.ok) throw new Error("Query failed");
   return res.json();

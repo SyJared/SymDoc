@@ -9,9 +9,9 @@ const { checkGrounding } = require("./groundingCheck");
  * Like documentService.js, this has zero knowledge of HTTP -- it just
  * takes a question string in, returns a plain result object out.
  */
-async function answerQuestion(question, k = 5) {
+async function answerQuestion(question, k = 5, documentId = null) {
   const queryEmbedding = await embedOne(question, "query");
-  const chunks = await findSimilarChunks(queryEmbedding, k);
+  const chunks = await findSimilarChunks(queryEmbedding, k, documentId);
 
   if (chunks.length === 0) {
     return {
