@@ -1,12 +1,16 @@
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
 /**
- * Builds the RAG prompt. This bounds the model to only the provided
- * context (hallucination mitigation starts here, not just in checking
- * after the fact). Note: with Gemini we don't need to also beg for JSON
- * in the prompt text -- responseSchema below enforces the shape directly.
+ * Builds the RAG prompt, now with conversation history.
+ *
+ * Important distinction: history is used ONLY to understand what the
+ * question means (e.g. resolving "what about the second one?" using the
+ * prior turn) -- it is NOT an additional source of facts. Every factual
+ * claim in the answer must still come from the retrieved context chunks,
+ * same as before. This keeps grounding/hallucination mitigation intact
+ * even with memory added.
  */
-function buildPrompt(question, chunks) {
+function buildPrompt(question, chunks, history = []) {
   const context = chunks
     .map(
       (c, i) =>
@@ -14,15 +18,27 @@ function buildPrompt(question, chunks) {
     )
     .join("\n\n");
 
+  const historyBlock =
+    history.length > 0
+      ? `Conversation so far (for understanding context/follow-ups only --
+NOT a source of facts):
+${history.map((h) => `User: ${h.question}\nAssistant: ${h.answer}`).join("\n\n")}
+
+`
+      : "";
+
   return `You are answering a question using ONLY the context chunks below.
 
-Context:
+${historyBlock}Context:
 ${context}
 
-Question: ${question}
+Current question: ${question}
 
 Rules:
 - Only use information found in the context above. Do not use outside knowledge.
+- Use the conversation history only to understand what the current question
+  is referring to (e.g. pronouns, "the second one", follow-ups). Never treat
+  the history itself as a source of facts -- facts must come from Context.
 - If the context does not contain enough information to answer, set "answer" to
   a short explanation that the documents don't cover this, and set "confidence" to "low".
 - Every item in "sources" must include a "quote" that is copied VERBATIM
@@ -30,9 +46,6 @@ Rules:
 - "confidence" must be one of: "high", "medium", "low".`;
 }
 
-// Gemini's native structured-output feature: instead of asking nicely in
-// the prompt and hoping, you give it a schema and the API constrains
-// generation to match this shape directly.
 const responseSchema = {
   type: "object",
   properties: {
@@ -53,8 +66,8 @@ const responseSchema = {
   required: ["answer", "confidence", "sources"],
 };
 
-async function answerFromContext(question, chunks) {
-  const prompt = buildPrompt(question, chunks);
+async function answerFromContext(question, chunks, history = []) {
+  const prompt = buildPrompt(question, chunks, history);
 
   const res = await fetch(`${GEMINI_URL}?key=${process.env.GEMINI_API_KEY}`, {
     method: "POST",

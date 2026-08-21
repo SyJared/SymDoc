@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { askQuestion, listDocuments } from "../api/api";
 
+// How many prior turns to send with each new question. This is the actual
+// "context management" decision -- too few and follow-ups lose context,
+// too many and you're sending a growing wall of text with every request
+// (slower, more tokens, more $$). 3 is a reasonable starting point.
+const MAX_HISTORY_TURNS = 3;
+
 export default function QueryChat({ refreshTrigger }) {
   const [question, setQuestion] = useState("");
   const [documents, setDocuments] = useState([]);
-  const [selectedDocId, setSelectedDocId] = useState(""); // "" means "all documents"
-  const [result, setResult] = useState(null);
-  const [status, setStatus] = useState("idle"); // idle | loading | error
+  const [selectedDocId, setSelectedDocId] = useState("");
+  const [messages, setMessages] = useState([]); // [{question, result}, ...]
+  const [status, setStatus] = useState("idle");
 
-  // Keep the dropdown in sync with whatever's actually been uploaded
   useEffect(() => {
     listDocuments()
       .then(setDocuments)
@@ -19,17 +24,31 @@ export default function QueryChat({ refreshTrigger }) {
     e.preventDefault();
     if (!question.trim()) return;
 
+    const currentQuestion = question;
+    setQuestion("");
     setStatus("loading");
+
+    // Build the trimmed history to send: last N turns, as plain
+    // {question, answer} pairs -- the backend only needs the answer TEXT,
+    // not the full result object with sources/confidence/etc.
+    const recentHistory = messages.slice(-MAX_HISTORY_TURNS).map((m) => ({
+      question: m.question,
+      answer: m.result.answer,
+    }));
+
     try {
-      // "" (All documents) becomes null -- backend treats null as "search everything"
       const documentId = selectedDocId ? Number(selectedDocId) : null;
-      const response = await askQuestion(question, documentId);
-      setResult(response);
+      const result = await askQuestion(currentQuestion, documentId, recentHistory);
+      setMessages((prev) => [...prev, { question: currentQuestion, result }]);
       setStatus("idle");
     } catch (err) {
       console.error(err);
       setStatus("error");
     }
+  }
+
+  function handleNewChat() {
+    setMessages([]);
   }
 
   return (
@@ -58,43 +77,55 @@ export default function QueryChat({ refreshTrigger }) {
         </button>
       </form>
 
+      {messages.length > 0 && (
+        <button type="button" className="new-chat" onClick={handleNewChat}>
+          New chat
+        </button>
+      )}
+
       {status === "error" && <p className="error">Something went wrong. Is the backend running?</p>}
 
-      {result && (
-        <div className="result">
-          <p className="answer">{result.answer}</p>
+      <div className="chat-thread">
+        {messages.map((m, i) => (
+          <div key={i} className="turn">
+            <p className="user-question">{m.question}</p>
 
-          <div className="badges">
-            <span className={`badge confidence-${result.confidence}`}>
-              Confidence: {result.confidence}
-            </span>
-            <span className={`badge grounded-${result.grounded}`}>
-              {result.grounded ? "✓ Grounded" : "⚠ Not verified"}
-            </span>
-          </div>
+            <div className="result">
+              <p className="answer">{m.result.answer}</p>
 
-          {result.sources?.length > 0 && (
-            <div className="sources">
-              <h4>Sources</h4>
-              {result.sources.map((s, i) => (
-                <div key={i} className={`source ${s.verified ? "verified" : "unverified"}`}>
-                  <p>"{s.quote}"</p>
-                  <small>{s.verified ? "✓ verified in document" : "✗ could not verify"}</small>
+              <div className="badges">
+                <span className={`badge confidence-${m.result.confidence}`}>
+                  Confidence: {m.result.confidence}
+                </span>
+                <span className={`badge grounded-${m.result.grounded}`}>
+                  {m.result.grounded ? "✓ Grounded" : "⚠ Not verified"}
+                </span>
+              </div>
+
+              {m.result.sources?.length > 0 && (
+                <div className="sources">
+                  <h4>Sources</h4>
+                  {m.result.sources.map((s, j) => (
+                    <div key={j} className={`source ${s.verified ? "verified" : "unverified"}`}>
+                      <p>"{s.quote}"</p>
+                      <small>{s.verified ? "✓ verified in document" : "✗ could not verify"}</small>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {result.retrievedChunks?.length > 0 && (
-            <details>
-              <summary>Retrieved chunks (debug)</summary>
-              {result.retrievedChunks.map((c, i) => (
-                <div key={i}>{c.document_title} — similarity: {c.similarity}</div>
-              ))}
-            </details>
-          )}
-        </div>
-      )}
+              {m.result.retrievedChunks?.length > 0 && (
+                <details>
+                  <summary>Retrieved chunks (debug)</summary>
+                  {m.result.retrievedChunks.map((c, j) => (
+                    <div key={j}>{c.document_title} — similarity: {c.similarity}</div>
+                  ))}
+                </details>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

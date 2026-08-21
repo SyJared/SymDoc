@@ -375,3 +375,58 @@ details div {
     transition: none !important;
   }
 }
+
+/* ---------- Multi-turn chat thread ---------- */
+
+.new-chat {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.new-chat:hover:not(:disabled) {
+  filter: none;
+  border-color: var(--accent-action);
+  color: var(--accent-action);
+}
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.user-question {
+  align-self: flex-end;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.9rem;
+  margin: 0;
+  max-width: 80%;
+  font-size: 0.9rem;
+}
+
+.turn .result {
+  margin-top: 0;
+}
+
+/* Fade older turns slightly so the most recent exchange reads as "active" */
+.turn:not(:last-child) {
+  opacity: 0.72;
+}
+
+.turn:not(:last-child):hover {
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}

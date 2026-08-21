@@ -6,14 +6,14 @@ const { answerQuestion } = require("../services/queryService");
  * No RAG logic lives here -- that's all in queryService.js.
  */
 async function askQuestion(req, res) {
-  const { question, k, documentId } = req.body;
+  const { question, k, documentId, history } = req.body;
 
   if (!question) {
     return res.status(400).json({ error: "question is required" });
   }
 
   try {
-    const result = await answerQuestion(question, k || 5, documentId || null);
+    const result = await answerQuestion(question, k || 5, documentId || null, history || []);
     res.json(result);
   } catch (err) {
     console.error(err);
