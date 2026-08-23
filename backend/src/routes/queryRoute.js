@@ -1,9 +1,9 @@
 const express = require("express");
 const { askQuestion } = require("../controllers/queryController");
+const { queryLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();
 
-// POST /api/query  { question, k? }
-router.post("/", askQuestion);
+router.post("/", queryLimiter, askQuestion);
 
 module.exports = router;
