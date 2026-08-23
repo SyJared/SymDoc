@@ -430,3 +430,39 @@ details div {
   opacity: 1;
   transition: opacity 0.15s ease;
 }
+
+/* ---------- Upload mode toggle ---------- */
+
+.mode-toggle {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.mode-toggle button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.7rem;
+}
+
+.mode-toggle button.active {
+  background: var(--surface-raised);
+  border-color: var(--accent-action);
+  color: var(--accent-action);
+}
+
+.mode-toggle button:hover:not(.active) {
+  filter: none;
+  color: var(--text);
+}
+
+input[type="file"] {
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}

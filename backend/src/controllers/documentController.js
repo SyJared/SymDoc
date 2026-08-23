@@ -1,23 +1,27 @@
-const {createDocumentFromText, listDocumentsWithChunkCounts} = require("../services/documentService");
+const {
+  createDocumentFromSource,
+  listDocumentsWithChunkCounts,
+} = require("../services/documentService");
+
 /**
- * Controllers only do three things:
- * 1. Pull data out of the HTTP request (validate what's required)
- * 2. Call a service function to do the actual work
- * 3. Shape the result into an HTTP response (status code + JSON)
- *
- * They never talk to the database directly, and never import pg. If you
- * ever swap Express for Fastify, or add a CLI, this file is the only
- * thing that would need to change — the service layer stays untouched.
+ * Handles BOTH cases: a PDF file upload (req.file, from multer) and a
+ * pasted-text upload (req.body.text, from the original JSON-style form).
+ * Whichever one is present gets passed to the service -- the controller's
+ * only job is figuring out which one this request actually is.
  */
 async function uploadDocument(req, res) {
   const { title, text } = req.body;
+  const pdfBuffer = req.file ? req.file.buffer : null;
 
-  if (!title || !text) {
-    return res.status(400).json({ error: "title and text are required" });
+  if (!title) {
+    return res.status(400).json({ error: "title is required" });
+  }
+  if (!text && !pdfBuffer) {
+    return res.status(400).json({ error: "either text or a PDF file is required" });
   }
 
   try {
-    const result = await createDocumentFromText(title, text);
+    const result = await createDocumentFromSource(title, { text, pdfBuffer });
     res.status(201).json(result);
   } catch (err) {
     console.error(err);

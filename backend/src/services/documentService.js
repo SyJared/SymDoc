@@ -1,16 +1,24 @@
-const { pool } = require("../db.js");
-const { chunkText } = require("./chunking.js");
-const { embedTexts } = require("./embeddings.js");
+const { pool } = require("../db");
+const { chunkText } = require("./chunking");
+const { embedTexts } = require("./embeddings");
+const { extractTextFromPdf } = require("./pdfExtract");
 
 /**
- * Takes a raw document (title + text), chunks it, embeds every chunk,
- * and stores everything in Postgres inside a single transaction.
- *
- * Deliberately framework-agnostic: no req/res here. That means you could
- * call this from a CLI script, a test, a queue worker, whatever — not
- * just an Express route. That's the whole point of a service layer.
+ * Takes a raw document (title + either pasted text OR a PDF buffer),
+ * extracts text if needed, chunks it, embeds every chunk, and stores
+ * everything in Postgres inside a single transaction.
  */
-async function createDocumentFromText(title, text) {
+async function createDocumentFromSource(title, { text, pdfBuffer }) {
+  // Extraction step: if a PDF was uploaded, pull its text out first.
+  // Either way, by the end of this block we just have a plain string --
+  // everything downstream (chunking, embedding) never needs to know
+  // whether it came from pasted text or a PDF.
+  const resolvedText = pdfBuffer ? await extractTextFromPdf(pdfBuffer) : text;
+
+  if (!resolvedText || !resolvedText.trim()) {
+    throw new Error("No extractable text found in the provided document");
+  }
+
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -21,7 +29,7 @@ async function createDocumentFromText(title, text) {
     );
     const documentId = rows[0].id;
 
-    const chunks = chunkText(text);
+    const chunks = chunkText(resolvedText);
     const embeddings = await embedTexts(chunks, "document");
 
     for (let i = 0; i < chunks.length; i++) {
@@ -37,7 +45,7 @@ async function createDocumentFromText(title, text) {
     return { documentId, chunkCount: chunks.length };
   } catch (err) {
     await client.query("ROLLBACK");
-    throw err; // let the controller decide how to turn this into an HTTP response
+    throw err;
   } finally {
     client.release();
   }
@@ -55,7 +63,4 @@ async function listDocumentsWithChunkCounts() {
   return rows;
 }
 
-module.exports = {
-  createDocumentFromText,
-  listDocumentsWithChunkCounts,
-};
+module.exports = { createDocumentFromSource, listDocumentsWithChunkCounts };
