@@ -1,0 +1,62 @@
+[
+  {
+    "question": "What water temperature is best for brewing coffee?",
+    "expected_document": "Coffee Brewing Basics",
+    "expected_answer_contains": "205",
+    "expect_grounded": true
+  },
+  {
+    "question": "What grind size should I use for espresso?",
+    "expected_document": "Coffee Brewing Basics",
+    "expected_answer_contains": "fine",
+    "expect_grounded": true
+  },
+  {
+    "question": "What's the recommended coffee to water ratio?",
+    "expected_document": "Coffee Brewing Basics",
+    "expected_answer_contains": "1:16",
+    "expect_grounded": true
+  },
+  {
+    "question": "What's the difference between GFCI and AFCI?",
+    "expected_document": "Basics of Home Electrical Wiring",
+    "expected_answer_contains": "arc",
+    "expect_grounded": true
+  },
+  {
+    "question": "What wire gauge do I need for a 20-amp circuit?",
+    "expected_document": "Basics of Home Electrical Wiring",
+    "expected_answer_contains": "12",
+    "expect_grounded": true
+  },
+  {
+    "question": "When does the rainy season start in the Philippines?",
+    "expected_document": "Overview of the Philippine Rainy Season",
+    "expected_answer_contains": "June",
+    "expect_grounded": true
+  },
+  {
+    "question": "Which regions get the heaviest rainfall during the wet season?",
+    "expected_document": "Overview of the Philippine Rainy Season",
+    "expected_answer_contains": "Luzon",
+    "expect_grounded": true
+  },
+  {
+    "question": "What's the best coffee brand to buy?",
+    "expected_document": null,
+    "expected_answer_contains": null,
+    "expect_grounded": false
+  },
+  {
+    "question": "What's the capital of France?",
+    "expected_document": null,
+    "expected_answer_contains": null,
+    "expect_grounded": false
+  },
+  {
+    "question": "How many amps does a hair dryer draw?",
+    "expected_document": null,
+    "expected_answer_contains": null,
+    "expect_grounded": false
+  }
+]
