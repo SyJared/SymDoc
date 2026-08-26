@@ -1,6 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-const { uploadDocument, getDocuments, removeDocument } = require("../controllers/documentsController");
+const { uploadDocument, getDocuments, removeDocument } = require("../controllers/documentController");
 const { uploadLimiter } = require("../middleware/rateLimiter");
 const { requireAnonId } = require("../middleware/requireAnonId");
 
