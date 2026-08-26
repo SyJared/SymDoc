@@ -1,4 +1,9 @@
-const BASE_URL = "http://localhost:5000";
+// In development this falls back to your local backend. In production,
+// Vercel injects VITE_API_URL (set in its dashboard) pointing at your
+// deployed Render backend instead -- same code, different target,
+// decided by an environment variable rather than editing this file
+// every time you switch between local and deployed.
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 /**
  * Uploads a document either as pasted text OR a PDF file (pass one, not
@@ -33,6 +38,14 @@ export async function listDocuments() {
   return res.json();
 }
 
+export async function deleteDocument(id) {
+  const res = await fetch(`${BASE_URL}/api/documents/${id}`, {
+    method: "DELETE",
+  });
+  // 204 has no body -- don't try to res.json() it
+  if (!res.ok) throw new Error("Failed to delete document");
+}
+
 export async function askQuestion(question, documentId = null, history = []) {
   const res = await fetch(`${BASE_URL}/api/query`, {
     method: "POST",
@@ -41,11 +54,4 @@ export async function askQuestion(question, documentId = null, history = []) {
   });
   if (!res.ok) throw new Error("Query failed");
   return res.json();
-}
-export async function deleteDocument(id) {
-  const res = await fetch(`${BASE_URL}/api/documents/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!res.ok) throw new Error("Failed to delete document");
 }

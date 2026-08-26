@@ -16,7 +16,8 @@ CREATE TABLE chunks (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS chunks_embedding_idx
-  ON chunks USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
-  
+-- ivfflat index intentionally omitted: with few rows it can silently
+-- miss real matches (the exact bug from earlier debugging). Without an
+-- index, Postgres does an exact scan, which is more accurate and still
+-- fast at this scale. Worth revisiting only once you have thousands
+-- of chunks.
