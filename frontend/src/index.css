@@ -35,7 +35,8 @@ h1, h2, h3, h4 {
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
+  margin: 0 0 0.15em;
 }
 
 h2 {
@@ -50,12 +51,69 @@ h2 {
 
 /* ---------- Layout ---------- */
 
+.page {
+  min-height: 100vh;
+}
+
+.site-header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.site-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand-mark {
+  width: 50px;
+  height: 50px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  object-fit: cover;
+  box-shadow: 0 2px 10px -2px rgba(212, 225, 87, 0.35);
+}
+
+.brand h1 {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text);
+}
+
+.brand .tagline {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.doc-count-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  white-space: nowrap;
+}
+
 .app {
   display: flex;
   gap: 2.5rem;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem;
+  padding: 2.25rem 1.5rem 3.5rem;
   align-items: flex-start;
 }
 
@@ -73,12 +131,6 @@ h2 {
 
 section {
   margin-bottom: 2.5rem;
-}
-
-.app > main > p {
-  color: var(--text-dim);
-  margin-top: -0.3em;
-  margin-bottom: 2em;
 }
 
 /* ---------- Document list (sidebar, index-card style) ---------- */
@@ -113,6 +165,30 @@ section {
 .document-list li span {
   color: var(--text-dim);
   font-size: 0.75rem;
+}
+
+.doc-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.delete-doc {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  padding: 0.1rem 0.5rem;
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.delete-doc:hover:not(:disabled) {
+  filter: none;
+  background: rgba(232, 130, 90, 0.1);
+  border-color: rgba(232, 130, 90, 0.3);
+  color: var(--accent-warn);
 }
 
 /* ---------- Forms (upload + query) ---------- */
@@ -356,6 +432,14 @@ details div {
 /* ---------- Responsive ---------- */
 
 @media (max-width: 720px) {
+  .site-header-inner {
+    padding: 1.25rem 1.25rem;
+  }
+
+  .doc-count-badge {
+    order: 3;
+  }
+
   .app {
     flex-direction: column;
   }

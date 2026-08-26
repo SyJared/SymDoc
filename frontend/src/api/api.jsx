@@ -42,3 +42,10 @@ export async function askQuestion(question, documentId = null, history = []) {
   if (!res.ok) throw new Error("Query failed");
   return res.json();
 }
+export async function deleteDocument(id) {
+  const res = await fetch(`${BASE_URL}/api/documents/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) throw new Error("Failed to delete document");
+}

@@ -3,16 +3,7 @@ const { chunkText } = require("./chunking");
 const { embedTexts } = require("./embeddings");
 const { extractTextFromPdf } = require("./pdfExtract");
 
-/**
- * Takes a raw document (title + either pasted text OR a PDF buffer),
- * extracts text if needed, chunks it, embeds every chunk, and stores
- * everything in Postgres inside a single transaction.
- */
 async function createDocumentFromSource(title, { text, pdfBuffer }) {
-  // Extraction step: if a PDF was uploaded, pull its text out first.
-  // Either way, by the end of this block we just have a plain string --
-  // everything downstream (chunking, embedding) never needs to know
-  // whether it came from pasted text or a PDF.
   const resolvedText = pdfBuffer ? await extractTextFromPdf(pdfBuffer) : text;
 
   if (!resolvedText || !resolvedText.trim()) {
@@ -63,4 +54,12 @@ async function listDocumentsWithChunkCounts() {
   return rows;
 }
 
-module.exports = { createDocumentFromSource, listDocumentsWithChunkCounts };
+async function deleteDocument(id) {
+  const { rowCount } = await pool.query(
+    "DELETE FROM documents WHERE id = $1",
+    [id]
+  );
+  return rowCount > 0;
+}
+
+module.exports = { createDocumentFromSource, listDocumentsWithChunkCounts, deleteDocument };

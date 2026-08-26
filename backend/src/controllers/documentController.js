@@ -1,14 +1,9 @@
 const {
   createDocumentFromSource,
   listDocumentsWithChunkCounts,
+  deleteDocument,
 } = require("../services/documentService");
 
-/**
- * Handles BOTH cases: a PDF file upload (req.file, from multer) and a
- * pasted-text upload (req.body.text, from the original JSON-style form).
- * Whichever one is present gets passed to the service -- the controller's
- * only job is figuring out which one this request actually is.
- */
 async function uploadDocument(req, res) {
   const { title, text } = req.body;
   const pdfBuffer = req.file ? req.file.buffer : null;
@@ -39,4 +34,23 @@ async function getDocuments(_req, res) {
   }
 }
 
-module.exports = { uploadDocument, getDocuments };
+async function removeDocument(req, res) {
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "Invalid document id" });
+  }
+
+  try {
+    const deleted = await deleteDocument(id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+    res.status(204).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete document" });
+  }
+}
+
+module.exports = { uploadDocument, getDocuments, removeDocument };
