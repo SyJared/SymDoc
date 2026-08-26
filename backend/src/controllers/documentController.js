@@ -16,7 +16,7 @@ async function uploadDocument(req, res) {
   }
 
   try {
-    const result = await createDocumentFromSource(title, { text, pdfBuffer });
+    const result = await createDocumentFromSource(title, { text, pdfBuffer }, req.ownerId);
     res.status(201).json(result);
   } catch (err) {
     console.error(err);
@@ -24,9 +24,9 @@ async function uploadDocument(req, res) {
   }
 }
 
-async function getDocuments(_req, res) {
+async function getDocuments(req, res) {
   try {
-    const documents = await listDocumentsWithChunkCounts();
+    const documents = await listDocumentsWithChunkCounts(req.ownerId);
     res.json(documents);
   } catch (err) {
     console.error(err);
@@ -42,7 +42,7 @@ async function removeDocument(req, res) {
   }
 
   try {
-    const deleted = await deleteDocument(id);
+    const deleted = await deleteDocument(id, req.ownerId);
     if (!deleted) {
       return res.status(404).json({ error: "Document not found" });
     }
