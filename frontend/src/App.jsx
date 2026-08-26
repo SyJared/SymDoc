@@ -31,12 +31,12 @@ export default function App() {
 
         <main>
           <section>
-            <h2>1. Add a document</h2>
+            <h2>Add a document</h2>
             <UploadForm onUploaded={bumpRefresh} />
           </section>
 
           <section>
-            <h2>2. Ask a question</h2>
+            <h2> Ask a question</h2>
             <QueryChat refreshTrigger={refreshTrigger} />
           </section>
         </main>
