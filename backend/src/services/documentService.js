@@ -3,13 +3,7 @@ const { chunkText } = require("./chunking");
 const { embedTexts } = require("./embeddings");
 const { extractTextFromPdf } = require("./pdfExtract");
 
-/**
- * ownerId is an anonymous per-browser identifier (generated on the
- * frontend, sent as a header) -- NOT a real authenticated user. It's
- * just a claim ticket: whoever holds this string can only see and
- * modify documents tagged with it.
- */
-async function createDocumentFromSource(title, { text, pdfBuffer }, ownerId) {
+async function createDocumentFromSource(title, { text, pdfBuffer }) {
   const resolvedText = pdfBuffer ? await extractTextFromPdf(pdfBuffer) : text;
 
   if (!resolvedText || !resolvedText.trim()) {
@@ -21,8 +15,8 @@ async function createDocumentFromSource(title, { text, pdfBuffer }, ownerId) {
     await client.query("BEGIN");
 
     const { rows } = await client.query(
-      "INSERT INTO documents (title, owner_id) VALUES ($1, $2) RETURNING id",
-      [title, ownerId]
+      "INSERT INTO documents (title) VALUES ($1) RETURNING id",
+      [title]
     );
     const documentId = rows[0].id;
 
@@ -48,29 +42,22 @@ async function createDocumentFromSource(title, { text, pdfBuffer }, ownerId) {
   }
 }
 
-// Filtered by owner: two different browsers calling this get two
-// completely different lists, even though it's the same query, same
-// table, same server.
-async function listDocumentsWithChunkCounts(ownerId) {
+async function listDocumentsWithChunkCounts() {
   const { rows } = await pool.query(
     `SELECT documents.id, documents.title, documents.created_at,
             COUNT(chunks.id) AS chunk_count
      FROM documents
      LEFT JOIN chunks ON chunks.document_id = documents.id
-     WHERE documents.owner_id = $1
      GROUP BY documents.id
-     ORDER BY documents.created_at DESC`,
-    [ownerId]
+     ORDER BY documents.created_at DESC`
   );
   return rows;
 }
 
-// The AND owner_id = $2 here is what stops one visitor from deleting
-// another visitor's document even if they somehow guessed the id.
-async function deleteDocument(id, ownerId) {
+async function deleteDocument(id) {
   const { rowCount } = await pool.query(
-    "DELETE FROM documents WHERE id = $1 AND owner_id = $2",
-    [id, ownerId]
+    "DELETE FROM documents WHERE id = $1",
+    [id]
   );
   return rowCount > 0;
 }
